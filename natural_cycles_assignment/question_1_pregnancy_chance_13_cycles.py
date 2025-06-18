@@ -9,7 +9,7 @@ plt.style.use("seaborn-v0_8")
 sns.set_palette("husl")
 
 
-def question_1_pregnancy_chance_within_13_cycles(df):
+def calculate_pregnancy_chance_within_13_cycles(df: pd.DataFrame):
     """Answer: What is the chance of getting pregnant within 13 cycles?"""
     print("\n" + "=" * 60)
     print("QUESTION 1: What is the chance of getting pregnant within 13 cycles?")
@@ -39,7 +39,9 @@ def question_1_pregnancy_chance_within_13_cycles(df):
     plt.figure(figsize=(12, 6))
     # Create histogram of cycles trying
     plt.subplot(1, 3, 1)
-    sns.histplot(df, x="n_cycles_trying", alpha=0.7, discrete=True, kde=True)
+    sns.histplot(
+        df, x="n_cycles_trying", alpha=0.7, discrete=True, kde=True, color="lightgreen"
+    )
     plt.axvline(x=13, color="red", linestyle="--", label="13 cycles")
     plt.title("Histogram of Cycles needed to Conceive")
     plt.xlabel("Number of Cycles Trying")
@@ -47,12 +49,24 @@ def question_1_pregnancy_chance_within_13_cycles(df):
     plt.legend()
 
     # Cumulative histogram in percentage
+    # BUG: the cumulative histogram is not correct, it should not total to 100%, because not all women got pregnant!
     plt.subplot(1, 3, 2)
     sns.histplot(
-        df, x="n_cycles_trying", alpha=0.7, discrete=True, cumulative=True, stat='percent', thresh=90
+        df,
+        x="n_cycles_trying",
+        alpha=0.7,
+        discrete=True,
+        cumulative=True,
+        stat="percent",
+        thresh=90,
     )
     plt.axvline(x=13, color="red", linestyle="--", label="13 cycles")
-    plt.axhline(y=overall_pregnancy_rate*100, color="black", linestyle="--", label=f"{overall_pregnancy_rate*100:.1f}%")
+    plt.axhline(
+        y=overall_pregnancy_rate * 100,
+        color="black",
+        linestyle="--",
+        label=f"{overall_pregnancy_rate*100:.1f}%",
+    )
     plt.title("Cumulative Pregnancy Rate over Cycles needed to Conceive")
     plt.xlabel("Number of Cycles Trying")
     plt.ylabel("Pregnancy Rate [%]")
@@ -82,6 +96,7 @@ def question_1_pregnancy_chance_within_13_cycles(df):
     plt.ylabel("Pregnancy Rate")
     plt.xticks(rotation=45)
 
+    # Save figure
     plt.tight_layout()
     plt.savefig(
         "reports/figures/pregnancy_chance_13_cycles.png", dpi=300, bbox_inches="tight"
@@ -101,8 +116,8 @@ def main():
     # Load and clean data
     df = load_and_clean_data(csv_file=csv_file)
 
-    # Answer the three questions
-    rate_13_cycles = question_1_pregnancy_chance_within_13_cycles(df)
+    # Answer question 1
+    rate_13_cycles = calculate_pregnancy_chance_within_13_cycles(df)
 
     # Summary
     print("\n" + "=" * 60)
