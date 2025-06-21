@@ -3,12 +3,12 @@ import numpy as np
 
 
 def load_and_clean_data(
-    csv_file: str, clean_data: bool = True, remove_na: bool = False
+    csv_file: str, clean_outliers: bool = True, remove_na: bool = False
 ):
     """Load and clean the dataset
     Args:
         csv_file: str, path to the csv file
-        clean_data: bool, whether to clean the data (default: True)
+        clean_outliers: bool, whether to clean the outliers (default: True)
         remove_na: bool, whether to remove rows with missing values (default: False)
     Returns:
         df: pd.DataFrame, the cleaned dataset
@@ -23,16 +23,17 @@ def load_and_clean_data(
         df = df.dropna()
     else:  # Remove rows with missing outcome or n_cycles_trying => essential for analysis => default
         df = df.dropna(subset=["outcome", "n_cycles_trying"])
-
+        
+    # Convert outcome to binary (1 for pregnant, 0 for not_pregnant)
+    # This makes later analysis easier
+    df["pregnant"] = (df["outcome"] == "pregnant").astype(int)
+    df = df.drop(columns=["outcome"])
+    
     # Clean the data
-    if clean_data == True:
-        # Convert outcome to binary (1 for pregnant, 0 for not_pregnant)
-        # This makes later analysis easier
-        df["pregnant"] = (df["outcome"] == "pregnant").astype(int)
-        df = df.drop(columns=["outcome"])
+    if clean_outliers == True:
 
         # Clean BMI outliers (remove values that are likely errors)
-        df = df[df["bmi"] > 10]  # Remove very low BMI values that are likely errors
+        df = df[df["bmi"] > 12]  # Remove very low BMI values that are likely errors
 
         # Clean age outliers
         df = df[

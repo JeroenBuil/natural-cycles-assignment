@@ -11,7 +11,7 @@ import pandas as pd
 def setup_plotting_style():
     """Set up consistent plotting style for the project."""
     plt.style.use("seaborn-v0_8")
-    sns.set_palette("husl")
+    sns.set_palette("viridis")
 
 
 def create_factor_plot(df, group_column, title, subplot_pos, color, xlabel):
@@ -72,7 +72,7 @@ def create_factors_overview_plot(
     if save_path:
         plt.savefig(save_path, dpi=300, bbox_inches="tight")
 
-    plt.show()
+    plt.show(block=False)
 
 
 def plot_predicted_vs_actual(
@@ -94,6 +94,12 @@ def plot_predicted_vs_actual(
     r2_score : float, optional
         R² score to display on the plot
     """
+    # Convert to numpy arrays if they are lists
+    if isinstance(y_true, list):
+        y_true = np.array(y_true)
+    if isinstance(y_pred, list):
+        y_pred = np.array(y_pred)
+
     plt.figure(figsize=(7, 7))
     plt.scatter(y_true, y_pred, alpha=0.6)
     plt.plot(
@@ -123,7 +129,7 @@ def plot_predicted_vs_actual(
     if save_path:
         plt.savefig(save_path, dpi=300, bbox_inches="tight")
 
-    plt.show()
+    plt.show(block=False)
 
 
 def plot_feature_importance(
@@ -169,7 +175,7 @@ def plot_feature_importance(
     if save_path:
         plt.savefig(save_path, dpi=300, bbox_inches="tight")
 
-    plt.show()
+    plt.show(block=False)
 
 
 def plot_model_comparison(metrics_dict, title="Model Comparison", save_path=None):
@@ -232,7 +238,7 @@ def plot_model_comparison(metrics_dict, title="Model Comparison", save_path=None
     if save_path:
         plt.savefig(save_path, dpi=300, bbox_inches="tight")
 
-    plt.show()
+    plt.show(block=False)
 
 
 def plot_correlation_matrix(df, title="Correlation Matrix", save_path=None):

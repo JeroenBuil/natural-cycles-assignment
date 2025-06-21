@@ -2,10 +2,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from natural_cycles_assignment.import_data import load_and_clean_data
+from natural_cycles_assignment.plotting import setup_plotting_style
 
 # Set up plotting style
-plt.style.use("seaborn-v0_8")
-sns.set_palette("husl")
+setup_plotting_style()
 
 
 def calculate_pregnancy_chance_within_13_cycles(df: pd.DataFrame):
@@ -89,9 +89,11 @@ def calculate_pregnancy_chance_within_13_cycles(df: pd.DataFrame):
     # Save figure
     plt.tight_layout()
     plt.savefig(
-        "reports/figures/pregnancy_chance_13_cycles.png", dpi=300, bbox_inches="tight"
+        "reports/figures/q1_pregnancy_chance_13_cycles.png",
+        dpi=300,
+        bbox_inches="tight",
     )
-    plt.show()
+    plt.show(block=False)
 
     return all_participants_rate_within_13
 
@@ -105,11 +107,17 @@ def main():
 
     # Load and clean data
     df = load_and_clean_data(
-        csv_file=csv_file, clean_data=False
+        csv_file=csv_file, clean_outliers=False, remove_na=False
     )  # not necessary to clean data for this question
 
     # Answer question 1
     all_participants_rate_within_13 = calculate_pregnancy_chance_within_13_cycles(df)
+
+    # Keep all figures open until user closes them
+    print("\n" + "=" * 60)
+    print("ANALYSIS COMPLETE - Close figure windows to exit")
+    print("=" * 60)
+    plt.show()
 
 
 if __name__ == "__main__":

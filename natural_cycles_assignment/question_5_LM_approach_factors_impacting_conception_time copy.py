@@ -16,6 +16,7 @@ from natural_cycles_assignment.model import (
     train_top_features_model,
     print_model_performance,
 )
+import matplotlib.pyplot as plt
 
 
 def question_5_LM_approach_factors_impacting_conception_time(df):
@@ -85,13 +86,22 @@ def question_5_LM_approach_factors_impacting_conception_time(df):
         print(f"  {i}. {feature}: {importance:.4f}")
 
     # Train model with top features
-    metrics_top, all_y_pred_top, all_y_test_top = train_top_features_model(
-        X, y, top_features_list, model_type="ridge"
+    metrics_top, all_y_pred_top, all_y_test_top, feature_importance_df_top = (
+        train_top_features_model(X, y, top_features_list, model_type="ridge")
     )
 
     # Print performance for top features model
     avg_rmse_top, avg_r2_top = print_model_performance(
         metrics_top, "TOP FEATURES MODEL"
+    )
+
+    # Plot predicted vs actual for top features model
+    plot_predicted_vs_actual(
+        all_y_test_top,
+        all_y_pred_top,
+        title="Top Features Ridge Regression (CV): Predicted vs Actual",
+        save_path="reports/figures/q5_top_features_ridge_pred_vs_actual.png",
+        r2_score=avg_r2_top,
     )
 
     # Print comparison
@@ -138,10 +148,16 @@ def main():
     csv_file = "data/external/ncdatachallenge-2021-v1.csv"
 
     # Load and clean data + remove na
-    df = load_and_clean_data(csv_file=csv_file, clean_data=True, remove_na=True)
+    df = load_and_clean_data(csv_file=csv_file, clean_outliers=True, remove_na=True)
 
     # Answer question 5
     factors_analysis = question_5_LM_approach_factors_impacting_conception_time(df)
+
+    # Keep all figures open until user closes them
+    print("\n" + "=" * 60)
+    print("ANALYSIS COMPLETE - Close figure windows to exit")
+    print("=" * 60)
+    plt.show()
 
 
 if __name__ == "__main__":

@@ -16,6 +16,7 @@ from natural_cycles_assignment.model import (
     train_top_features_model,
     print_model_performance,
 )
+import matplotlib.pyplot as plt
 
 
 def question_4_ML_approach_factors_impacting_conception_time(df):
@@ -75,7 +76,7 @@ def question_4_ML_approach_factors_impacting_conception_time(df):
     print("=" * 60)
 
     # Get top features
-    top_features_list = get_top_features(feature_importance_df, top_n=8)
+    top_features_list = get_top_features(feature_importance_df, top_n=5)
 
     print(f"Selected top {len(top_features_list)} features:")
     for i, feature in enumerate(top_features_list, 1):
@@ -85,14 +86,31 @@ def question_4_ML_approach_factors_impacting_conception_time(df):
         print(f"  {i}. {feature}: {importance:.4f}")
 
     # Train model with top features
-    metrics_top, all_y_pred_top, all_y_test_top = train_top_features_model(
-        X, y, top_features_list, model_type="xgboost"
+    metrics_top, all_y_pred_top, all_y_test_top, feature_importance_df_top = (
+        train_top_features_model(X, y, top_features_list, model_type="xgboost")
     )
 
     # Print performance for top features model
     avg_rmse_top, avg_r2_top = print_model_performance(
         metrics_top, "TOP FEATURES XGBOOST"
     )
+
+    # Plot predicted vs actual for top features model
+    plot_predicted_vs_actual(
+        all_y_test_top,
+        all_y_pred_top,
+        title="Top Features XGBoost Regression (CV): Predicted vs Actual",
+        save_path="reports/figures/q4_top_features_xgboost_pred_vs_actual.png",
+        r2_score=avg_r2_top,
+    )
+
+    # Plot feature importance for top features model
+    if feature_importance_df_top is not None:
+        plot_feature_importance(
+            feature_importance_df_top,
+            title="Top Features XGBoost Feature Importance (CV)",
+            save_path="reports/figures/q4_top_features_xgboost_feature_importance.png",
+        )
 
     # Print comparison
     print("\n" + "=" * 60)
@@ -138,10 +156,16 @@ def main():
     csv_file = "data/external/ncdatachallenge-2021-v1.csv"
 
     # Load and clean data + remove na
-    df = load_and_clean_data(csv_file=csv_file, clean_data=True, remove_na=True)
+    df = load_and_clean_data(csv_file=csv_file, clean_outliers=True, remove_na=True)
 
     # Answer question 4
     factors_analysis = question_4_ML_approach_factors_impacting_conception_time(df)
+
+    # Keep all figures open until user closes them
+    print("\n" + "=" * 60)
+    print("ANALYSIS COMPLETE - Close figure windows to exit")
+    print("=" * 60)
+    plt.show()
 
 
 if __name__ == "__main__":

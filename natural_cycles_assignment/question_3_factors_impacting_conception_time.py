@@ -86,22 +86,29 @@ def perform_statistical_test(df, group_column, test_type="anova"):
         df: DataFrame with pregnant participants
         group_column: Column name for grouping
         test_type: Type of test ("anova" or "ttest")
+
+    Returns:
+        float: p-value from the statistical test, or None if test couldn't be performed
     """
     groups = [
         group["n_cycles_trying"].values
-        for name, group in df.groupby(group_column)
+        for name, group in df.groupby(group_column, observed=True)
         if len(group) > 0
     ]
 
     if len(groups) < 2:
-        return
+        return None
 
     if test_type == "anova" and len(groups) > 1:
         f_stat, p_value = stats.f_oneway(*groups)
         print(f"ANOVA p-value for {group_column}: {p_value:.4f}")
+        return p_value
     elif test_type == "ttest" and len(groups) == 2:
         t_stat, p_value = stats.ttest_ind(groups[0], groups[1])
         print(f"T-test p-value for {group_column}: {p_value:.4f}")
+        return p_value
+
+    return None
 
 
 def calculate_associations(df, numeric_cols, categorical_vars):
@@ -185,6 +192,7 @@ def question_3_factors_impacting_conception_time(df):
         df: pd.DataFrame, the cleaned dataset
     Returns:
         df_pregnant: pd.DataFrame, the dataset with only pregnant participants
+        significant_vars: dict, dictionary with significant variables and their statistics
     """
     print("\n" + "=" * 60)
     print("QUESTION 3: What factors impact the time it takes to get pregnant?")
@@ -195,7 +203,7 @@ def question_3_factors_impacting_conception_time(df):
 
     if len(df_pregnant) == 0:
         print("No pregnant women found in the dataset!")
-        return None
+        return None, {}
 
     # Define factor configurations
     factor_configs = [
@@ -295,7 +303,7 @@ def question_3_factors_impacting_conception_time(df):
             "test_type": "anova",
             "plot_config": {
                 "title": "Mean Cycles to Pregnancy by Sleep Pattern",
-                "color": "orange",
+                "color": "teal",
                 "xlabel": "Sleep Pattern",
             },
         },
@@ -319,15 +327,11 @@ def question_3_factors_impacting_conception_time(df):
         },
     ]
 
-    # Analyze all factors
+    # Analyze all factors and collect statistical results
     group_columns = []
-    for i, config in enumerate(factor_configs):
-        # Debug: Print unique values for education to see what's actually in the data
-        if config["column"] == "education":
-            print(f"\nDEBUG: Unique education values in data:")
-            print(df_pregnant["education"].value_counts())
-            print(f"Expected labels: {config['labels']}")
+    significant_vars = {}
 
+    for i, config in enumerate(factor_configs):
         analysis, group_col = analyze_categorical_factor(
             df_pregnant,
             config["column"],
@@ -337,8 +341,14 @@ def question_3_factors_impacting_conception_time(df):
         )
         group_columns.append(group_col)
 
-        # Perform statistical test
-        perform_statistical_test(df_pregnant, group_col, config["test_type"])
+        # Perform statistical test and collect p-value
+        p_value = perform_statistical_test(df_pregnant, group_col, config["test_type"])
+        if p_value is not None:
+            significant_vars[config["column"]] = {
+                "p_value": p_value,
+                "test_type": config["test_type"],
+                "significant": p_value <= 0.05,
+            }
 
     # Create visualizations
     plt.figure(figsize=(16, 10))
@@ -355,7 +365,7 @@ def question_3_factors_impacting_conception_time(df):
 
     plt.tight_layout(pad=3.0)
     plt.savefig("reports/figures/q3_factors_impact.png", dpi=300, bbox_inches="tight")
-    plt.show()
+    plt.show(block=False)
 
     # Correlation analysis
     print("\n9. CORRELATION ANALYSIS:")
@@ -372,6 +382,15 @@ def question_3_factors_impacting_conception_time(df):
     print("Correlation with cycles to pregnancy:")
     print(correlation_matrix["n_cycles_trying"].sort_values(ascending=False))
 
+    # Add correlation results to significant_vars
+    for col in numeric_cols:
+        corr = correlation_matrix.loc[col, "n_cycles_trying"]
+        if col not in significant_vars:
+            significant_vars[col] = {}
+        significant_vars[col]["correlation"] = corr
+        significant_vars[col]["correlation_abs"] = abs(corr)
+        significant_vars[col]["correlation_significant"] = abs(corr) > 0.5
+
     # Calculate associations for all variables
     categorical_vars = [(name, df_pregnant[name]) for name in group_columns]
 
@@ -384,7 +403,7 @@ def question_3_factors_impacting_conception_time(df):
         associations_df, save_path="reports/figures/q3_overview_factors_correlation.png"
     )
 
-    return df_pregnant
+    return significant_vars
 
 
 def main():
@@ -395,22 +414,49 @@ def main():
     csv_file = "data/external/ncdatachallenge-2021-v1.csv"
 
     # Load and clean data + remove na
-    df = load_and_clean_data(csv_file=csv_file, clean_data=True, remove_na=True)
+    df = load_and_clean_data(csv_file=csv_file, clean_outliers=True, remove_na=True)
 
     # Answer question 3
-    factors_analysis = question_3_factors_impacting_conception_time(df)
+    significant_vars = question_3_factors_impacting_conception_time(df)
 
-    # Summary
+    # Summary section
     print("\n" + "=" * 60)
-    print("SUMMARY OF FINDINGS")
+    print("SUMMARY OF SIGNIFICANT VARIABLES")
     print("=" * 60)
 
-    print("3. Key factors affecting time to pregnancy:")
-    print("   - Age (older participants may take longer)")
-    print("   - Previous pregnancy history")
-    print("   - BMI (both underweight and overweight)")
-    print("   - Cycle regularity")
-    print("   - App dedication and intercourse frequency")
+    print("\nVariables with p-value ≤ 0.05 (statistically significant):")
+    p_value_significant = []
+    for var, stats in significant_vars.items():
+        if "p_value" in stats and stats.get("significant", False):
+            p_value_significant.append((var, stats["p_value"], stats["test_type"]))
+
+    if p_value_significant:
+        for var, p_val, test_type in sorted(p_value_significant, key=lambda x: x[1]):
+            print(f"  • {var}: p = {p_val:.4f} ({test_type})")
+    else:
+        print("  None found")
+
+    print("\nVariables with correlation > 0.5 (strong correlation):")
+    corr_significant = []
+    for var, stats in significant_vars.items():
+        if "correlation_significant" in stats and stats["correlation_significant"]:
+            corr_significant.append(
+                (var, stats["correlation"], stats["correlation_abs"])
+            )
+
+    if corr_significant:
+        for var, corr, corr_abs in sorted(
+            corr_significant, key=lambda x: x[2], reverse=True
+        ):
+            print(f"  • {var}: r = {corr:.3f} (|r| = {corr_abs:.3f})")
+    else:
+        print("  None found")
+
+    # Keep all figures open until user closes them
+    print("\n" + "=" * 60)
+    print("ANALYSIS COMPLETE - Close figure windows to exit")
+    print("=" * 60)
+    plt.show()
 
 
 if __name__ == "__main__":

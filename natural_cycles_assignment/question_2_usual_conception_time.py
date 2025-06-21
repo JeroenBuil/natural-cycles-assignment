@@ -2,10 +2,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from natural_cycles_assignment.import_data import load_and_clean_data
+from natural_cycles_assignment.plotting import setup_plotting_style
 
 # Set up plotting style
-plt.style.use("seaborn-v0_8")
-sns.set_palette("husl")
+setup_plotting_style()
 
 
 def calculate_usual_conception_time(df: pd.DataFrame):
@@ -13,7 +13,7 @@ def calculate_usual_conception_time(df: pd.DataFrame):
     Args:
         df: pd.DataFrame, the cleaned dataset
     Returns:
-        df_pregnant["n_cycles_trying"]: pd.Series, the number of cycles trying to get pregnant for each participant 
+        df_pregnant["n_cycles_trying"]: pd.Series, the number of cycles trying to get pregnant for each participant
     """
     print("\n" + "=" * 60)
     print("QUESTION 2: How long does it usually take to get pregnant?")
@@ -112,7 +112,7 @@ def calculate_usual_conception_time(df: pd.DataFrame):
     plt.savefig(
         "reports/figures/q2_usual_conception_time.png", dpi=300, bbox_inches="tight"
     )
-    plt.show()
+    plt.show(block=False)
 
     return df_pregnant["n_cycles_trying"]
 
@@ -126,11 +126,17 @@ def main():
 
     # Load and clean data
     df = load_and_clean_data(
-        csv_file=csv_file, clean_data=False
+        csv_file=csv_file, clean_outliers=False, remove_na=False
     )  # not necessary to clean data for this question
 
     # Answer question 2
     df_cycles_to_pregnancy = calculate_usual_conception_time(df)
+
+    # Keep all figures open until user closes them
+    print("\n" + "=" * 60)
+    print("ANALYSIS COMPLETE - Close figure windows to exit")
+    print("=" * 60)
+    plt.show()
 
 
 if __name__ == "__main__":

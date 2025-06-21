@@ -297,6 +297,8 @@ def train_top_features_model(X, y, top_features_list, model_type="ridge", n_spli
         All predictions from CV
     all_true_values : list
         All true values from CV
+    feature_importance_df : pandas.DataFrame, optional
+        Feature importance DataFrame (only for XGBoost models)
     """
     # Create new feature matrix with only top features
     X_top = X[top_features_list].copy()
@@ -306,6 +308,10 @@ def train_top_features_model(X, y, top_features_list, model_type="ridge", n_spli
     all_y_test_top = []
     all_y_pred_top = []
     metrics_top = []
+
+    # For feature importance tracking (XGBoost only)
+    if model_type == "xgboost":
+        feature_importances = np.zeros(len(top_features_list))
 
     for fold, (train_idx, test_idx) in enumerate(kf.split(X_top)):
         print(f"\nFold {fold + 1}/{n_splits} (Top Features Model)")
@@ -368,6 +374,11 @@ def train_top_features_model(X, y, top_features_list, model_type="ridge", n_spli
         # Collect all predictions and true values
         all_y_test_top.extend(y_test_top)
         all_y_pred_top.extend(y_pred_top)
+
+        # Accumulate feature importances for XGBoost
+        if model_type == "xgboost":
+            feature_importances += best_model_top.feature_importances_
+
         # Collect metrics
         rmse_top = np.sqrt(mean_squared_error(y_test_top, y_pred_top))
         r2_top = r2_score(y_test_top, y_pred_top)
@@ -381,7 +392,15 @@ def train_top_features_model(X, y, top_features_list, model_type="ridge", n_spli
             }
         )
 
-    return metrics_top, all_y_pred_top, all_y_test_top
+    # Create feature importance DataFrame for XGBoost models
+    if model_type == "xgboost":
+        feature_importances /= n_splits
+        feature_importance_df = pd.DataFrame(
+            {"Feature": top_features_list, "Importance": feature_importances}
+        ).sort_values(by="Importance", ascending=False)
+        return metrics_top, all_y_pred_top, all_y_test_top, feature_importance_df
+    else:
+        return metrics_top, all_y_pred_top, all_y_test_top, None
 
 
 def print_model_performance(metrics, model_name="Model"):
