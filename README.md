@@ -194,7 +194,7 @@ This project is licensed under the BSD License - see the [LICENSE](LICENSE) file
 
 ## 👨‍💻 Author
 
-**Jeroen Buil** - Senior Data Scientist
+**Jeroen Buil** - Senior Data Scientist / Biomedical Engineer
 
 ---
 
