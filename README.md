@@ -46,11 +46,23 @@ methods)? What trade-offs would you consider?
 
 ## 📊 Data
 
-The analysis uses the Natural Cycles dataset (`ncdatachallenge-2021-v1.csv`) (NOT INCLUDED IN THE REPOSITORY!) which contains:
+**⚠️ IMPORTANT**: All analyses in this project rely on the Natural Cycles dataset (`ncdatachallenge-2021-v1.csv`) which is **NOT INCLUDED** in this repository.
+
+### Required Data Setup
+
+To run any analysis, you must:
+
+1. **Obtain the dataset** from Natural Cycles
+2. **Place the file** in the `data/external/` directory
+3. **Ensure the filename** is exactly `ncdatachallenge-2021-v1.csv`
+
+The dataset contains:
 - Pregnancy outcomes
 - Cycles trying to conceive
 - Various demographic and health factors
 - Lifestyle and medical information
+
+**Note**: Without this data file, all analysis scripts will fail with a "file not found" error.
 
 ## 🔬 Analysis Modules
 
