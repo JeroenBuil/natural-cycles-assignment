@@ -1,4 +1,79 @@
-site_name: Natural Cycles Assignment
-# 
+site_name: Natural Cycles Assignment - Pregnancy Analysis
+site_description: Jeroen Buil's submission for the Senior Data Scientist position at Natural Cycles
 site_author: Jeroen Buil
+site_url: https://github.com/jeroenbuil/natural-cycles-assignment
+
+# Repository
+repo_name: jeroenbuil/natural-cycles-assignment
+repo_url: https://github.com/jeroenbuil/natural-cycles-assignment
+
+# Theme configuration
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/toggle-switch-off-outline
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+
+# Navigation
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - Analysis Questions:
+    - Question 1 - Pregnancy Chance: question1.md
+    - Question 2 - Conception Time: question2.md
+    - Question 3 - Factor Impact: question3.md
+    - Question 4 - Machine Learning: question4.md
+  - Technical Documentation:
+    - API Reference: api.md
+    - Data Processing: data-processing.md
+    - Model Training: model-training.md
+  - Results: results.md
+
+# Plugins
+plugins:
+  - search
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          rendering:
+            show_source: true
+            show_root_heading: true
+
+# Markdown extensions
+markdown_extensions:
+  - admonition
+  - codehilite
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.smartsymbols
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.emoji:
+      emoji_generator: !!python/name:materialx.emoji.twemoji
+  - toc:
+      permalink: true
 # 
