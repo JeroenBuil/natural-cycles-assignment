@@ -19,7 +19,7 @@ from natural_cycles_assignment.model import (
 import matplotlib.pyplot as plt
 
 
-def question_4_ML_approach_factors_impacting_conception_time(df):
+def question_4_ML_regression_approach_factors_impacting_conception_time(df):
     """Answer: What factors impact the time it takes to get pregnant?"""
     print("\n" + "=" * 60)
     print(
@@ -59,7 +59,7 @@ def question_4_ML_approach_factors_impacting_conception_time(df):
         all_y_test,
         all_y_pred,
         title="XGBoost Regression (CV): Predicted vs Actual",
-        save_path="reports/figures/q4_xgboost_pred_vs_actual.png",
+        save_path="reports/figures/q4_ML_regression_xgboost_pred_vs_actual.png",
         r2_score=avg_r2,
         model_params=best_params,
     )
@@ -68,7 +68,7 @@ def question_4_ML_approach_factors_impacting_conception_time(df):
     plot_feature_importance(
         feature_importance_df,
         title="Top 10 Feature Importance (XGBoost, CV)",
-        save_path="reports/figures/q4_XGBoost_feature_importance.png",
+        save_path="reports/figures/q4_ML_regression_xgboost_feature_importance.png",
     )
 
     return df_pregnant
@@ -88,7 +88,7 @@ def main():
     df = load_and_clean_data(csv_file=csv_file, clean_outliers=True, remove_na=True)
 
     # Answer question 4
-    factors_analysis = question_4_ML_approach_factors_impacting_conception_time(df)
+    factors_analysis = question_4_ML_regression_approach_factors_impacting_conception_time(df)
 
     # Keep all figures open until user closes them
     print("\n" + "=" * 60)

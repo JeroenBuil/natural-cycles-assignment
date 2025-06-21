@@ -20,11 +20,11 @@ from collections import Counter
 import seaborn as sns
 
 
-def question_5_classification_approach_factors_impacting_conception_time(df):
+def question_4_ML_classification_approach_factors_impacting_conception_time(df):
     """Answer: What factors impact the time it takes to get pregnant? (Classification approach)"""
     print("\n" + "=" * 60)
     print(
-        "QUESTION 5: Classification Approach: what factors impact the time it takes to get pregnant?"
+        "QUESTION 4: ML Classification Approach: what factors impact the time it takes to get pregnant?"
     )
     print("=" * 60)
 
@@ -112,7 +112,7 @@ def question_5_classification_approach_factors_impacting_conception_time(df):
 
     plt.tight_layout()
     plt.savefig(
-        "reports/figures/q5_class_distribution_before_after_smote.png",
+        "reports/figures/q4_ML_classification_class_distribution_before_after_smote.png",
         dpi=300,
         bbox_inches="tight",
     )
@@ -136,7 +136,7 @@ def question_5_classification_approach_factors_impacting_conception_time(df):
         all_y_test,
         all_y_pred,
         title="XGBoost Classification (CV): Classification Results",
-        save_path="reports/figures/q5_xgboost_classification_heatmap.png",
+        save_path="reports/figures/q4_ML_classification_xgboost_heatmap.png",
         model_params=best_params,
         class_names=class_names,
         accuracy=avg_accuracy,
@@ -147,7 +147,7 @@ def question_5_classification_approach_factors_impacting_conception_time(df):
     plot_feature_importance(
         feature_importance_df,
         title="Top 10 Feature Importance (XGBoost Classification, CV)",
-        save_path="reports/figures/q5_XGBoost_classification_feature_importance.png",
+        save_path="reports/figures/q4_ML_classification_xgboost_feature_importance.png",
     )
 
     # Print final results
@@ -174,9 +174,9 @@ def main():
     # Load and clean data + remove na
     df = load_and_clean_data(csv_file=csv_file, clean_outliers=True, remove_na=True)
 
-    # Answer question 5
+    # Answer question 4
     factors_analysis = (
-        question_5_classification_approach_factors_impacting_conception_time(df)
+        question_4_ML_classification_approach_factors_impacting_conception_time(df)
     )
 
     # Keep all figures open until user closes them

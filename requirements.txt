@@ -1,16 +1,28 @@
+# Core data science libraries
+numpy
+pandas
+scikit-learn
+scipy
+
+# Machine learning
+xgboost
+imbalanced-learn
+
+# Visualization
+matplotlib
+seaborn
+
+# Development and utilities
 ipython
 jupyterlab
 loguru
-matplotlib
 mkdocs
 notebook
-numpy
-pandas
 pip
 python-dotenv
 ruff
-scikit-learn
 tqdm
 typer
-xgboost
+
+# Local package
 -e .
