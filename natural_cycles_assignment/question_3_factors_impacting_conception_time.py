@@ -351,7 +351,7 @@ def question_3_factors_impacting_conception_time(df):
             }
 
     # Create visualizations
-    plt.figure(figsize=(16, 10))
+    plt.figure(figsize=(11, 7))
 
     for i, (config, group_col) in enumerate(zip(factor_configs, group_columns)):
         create_factor_plot(

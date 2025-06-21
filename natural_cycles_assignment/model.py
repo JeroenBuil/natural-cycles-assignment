@@ -6,9 +6,9 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import KFold, GridSearchCV
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.metrics import mean_squared_error, r2_score, accuracy_score, f1_score
 from sklearn.linear_model import Ridge
-from xgboost import XGBRegressor
+from xgboost import XGBRegressor, XGBClassifier
 
 
 def evaluate_model_cv(X, y, model, n_splits=5, random_state=42):
@@ -199,16 +199,14 @@ def train_xgboost_model_with_cv(X, y, param_grid=None, n_splits=5):
         All predictions from CV
     all_true_values : list
         All true values from CV
+    best_params : dict
+        Best parameters found by GridSearchCV (averaged across folds)
     """
     if param_grid is None:
         param_grid = {
             "n_estimators": [100, 200],
             "max_depth": [3, 5, 7],
             "learning_rate": [0.01, 0.1, 0.2],
-            "subsample": [0.8, 0.9, 1.0],
-            "colsample_bytree": [0.8, 0.9, 1.0],
-            "reg_alpha": [0, 0.1, 0.5],
-            "reg_lambda": [0, 0.1, 0.5],
         }
 
     kf = KFold(n_splits=n_splits, shuffle=True, random_state=42)
@@ -216,6 +214,7 @@ def train_xgboost_model_with_cv(X, y, param_grid=None, n_splits=5):
     all_y_test = []
     all_y_pred = []
     metrics = []
+    all_best_params = []
 
     for fold, (train_idx, test_idx) in enumerate(kf.split(X)):
         print(f"\nFold {fold + 1}/{n_splits}")
@@ -243,6 +242,9 @@ def train_xgboost_model_with_cv(X, y, param_grid=None, n_splits=5):
         print(f"Best parameters: {grid_search.best_params_}")
         print(f"Best CV score: {-grid_search.best_score_:.2f}")
 
+        # Store best parameters for this fold
+        all_best_params.append(grid_search.best_params_)
+
         y_pred = best_model.predict(X_test)
 
         # Accumulate feature importances
@@ -269,7 +271,17 @@ def train_xgboost_model_with_cv(X, y, param_grid=None, n_splits=5):
         {"Feature": X.columns, "Importance": feature_importances}
     ).sort_values(by="Importance", ascending=False)
 
-    return metrics, feature_importance_df, all_y_pred, all_y_test
+    # Calculate average best parameters across folds
+    avg_best_params = {}
+    for param in param_grid.keys():
+        if param in ["n_estimators"]:  # Integer parameters
+            values = [params[param] for params in all_best_params]
+            avg_best_params[param] = int(np.mean(values))
+        else:  # Float parameters
+            values = [params[param] for params in all_best_params]
+            avg_best_params[param] = np.mean(values)
+
+    return metrics, feature_importance_df, all_y_pred, all_y_test, avg_best_params
 
 
 def train_top_features_model(X, y, top_features_list, model_type="ridge", n_splits=5):
@@ -299,6 +311,8 @@ def train_top_features_model(X, y, top_features_list, model_type="ridge", n_spli
         All true values from CV
     feature_importance_df : pandas.DataFrame, optional
         Feature importance DataFrame (only for XGBoost models)
+    best_params : dict, optional
+        Best parameters found by GridSearchCV (only for XGBoost models)
     """
     # Create new feature matrix with only top features
     X_top = X[top_features_list].copy()
@@ -312,6 +326,7 @@ def train_top_features_model(X, y, top_features_list, model_type="ridge", n_spli
     # For feature importance tracking (XGBoost only)
     if model_type == "xgboost":
         feature_importances = np.zeros(len(top_features_list))
+        all_best_params = []
 
     for fold, (train_idx, test_idx) in enumerate(kf.split(X_top)):
         print(f"\nFold {fold + 1}/{n_splits} (Top Features Model)")
@@ -345,8 +360,6 @@ def train_top_features_model(X, y, top_features_list, model_type="ridge", n_spli
                 "n_estimators": [100, 200],
                 "max_depth": [3, 5],
                 "learning_rate": [0.1, 0.2],
-                "subsample": [0.8, 1.0],
-                "colsample_bytree": [0.8, 1.0],
             }
 
             X_train_final, X_test_final = X_train_top, X_test_top
@@ -367,6 +380,8 @@ def train_top_features_model(X, y, top_features_list, model_type="ridge", n_spli
             print(f"Best alpha: {grid_search_top.best_params_}")
         else:
             print(f"Best parameters: {grid_search_top.best_params_}")
+            # Store best parameters for this fold
+            all_best_params.append(grid_search_top.best_params_)
         print(f"Best CV score: {-grid_search_top.best_score_:.2f}")
 
         y_pred_top = best_model_top.predict(X_test_final)
@@ -398,9 +413,26 @@ def train_top_features_model(X, y, top_features_list, model_type="ridge", n_spli
         feature_importance_df = pd.DataFrame(
             {"Feature": top_features_list, "Importance": feature_importances}
         ).sort_values(by="Importance", ascending=False)
-        return metrics_top, all_y_pred_top, all_y_test_top, feature_importance_df
+
+        # Calculate average best parameters across folds
+        avg_best_params = {}
+        for param in param_grid_top.keys():
+            if param in ["n_estimators"]:  # Integer parameters
+                values = [params[param] for params in all_best_params]
+                avg_best_params[param] = int(np.mean(values))
+            else:  # Float parameters
+                values = [params[param] for params in all_best_params]
+                avg_best_params[param] = np.mean(values)
+
+        return (
+            metrics_top,
+            all_y_pred_top,
+            all_y_test_top,
+            feature_importance_df,
+            avg_best_params,
+        )
     else:
-        return metrics_top, all_y_pred_top, all_y_test_top, None
+        return metrics_top, all_y_pred_top, all_y_test_top, None, None
 
 
 def print_model_performance(metrics, model_name="Model"):
@@ -424,3 +456,270 @@ def print_model_performance(metrics, model_name="Model"):
     print(f"  R² Score: {avg_r2:.3f}")
 
     return avg_rmse, avg_r2
+
+
+def train_xgboost_classification_with_cv(X, y, param_grid=None, n_splits=5):
+    """
+    Train XGBoost classification model with cross-validation and hyperparameter tuning.
+
+    Parameters:
+    -----------
+    X : pandas.DataFrame
+        Feature matrix
+    y : pandas.Series
+        Target variable (categorical)
+    param_grid : dict, optional
+        Hyperparameter grid for XGBoost
+    n_splits : int
+        Number of CV folds
+
+    Returns:
+    --------
+    metrics : list
+        List of metric dictionaries
+    feature_importance_df : pandas.DataFrame
+        Feature importance DataFrame
+    all_predictions : list
+        All predictions from CV
+    all_true_values : list
+        All true values from CV
+    best_params : dict
+        Best parameters found by GridSearchCV (averaged across folds)
+    """
+    if param_grid is None:
+        param_grid = {
+            "n_estimators": [100, 200],
+            "max_depth": [3, 5, 7],
+            "learning_rate": [0.01, 0.1, 0.2],
+        }
+
+    kf = KFold(n_splits=n_splits, shuffle=True, random_state=42)
+    feature_importances = np.zeros(X.shape[1])
+    all_y_test = []
+    all_y_pred = []
+    metrics = []
+    all_best_params = []
+
+    for fold, (train_idx, test_idx) in enumerate(kf.split(X)):
+        print(f"\nFold {fold + 1}/{n_splits}")
+        X_train, X_test = X.iloc[train_idx], X.iloc[test_idx]
+        y_train, y_test = y.iloc[train_idx], y.iloc[test_idx]
+
+        # Hyperparameter tuning for this fold
+        base_model = XGBClassifier(
+            objective="multi:softprob", random_state=42, eval_metric="mlogloss"
+        )
+
+        # Use GridSearchCV for hyperparameter tuning
+        grid_search = GridSearchCV(
+            base_model,
+            param_grid,
+            cv=3,
+            scoring="f1_macro",
+            n_jobs=-1,
+            verbose=0,
+        )
+
+        grid_search.fit(X_train, y_train)
+        best_model = grid_search.best_estimator_
+
+        print(f"Best parameters: {grid_search.best_params_}")
+        print(f"Best CV score: {grid_search.best_score_:.3f}")
+
+        # Store best parameters for this fold
+        all_best_params.append(grid_search.best_params_)
+
+        y_pred = best_model.predict(X_test)
+
+        # Accumulate feature importances
+        feature_importances += best_model.feature_importances_
+        # Collect all predictions and true values
+        all_y_test.extend(y_test)
+        all_y_pred.extend(y_pred)
+        # Collect metrics
+        accuracy = accuracy_score(y_test, y_pred)
+        f1 = f1_score(y_test, y_pred, average="macro")
+
+        print(f"Fold {fold + 1} Accuracy: {accuracy:.3f}, F1: {f1:.3f}")
+
+        metrics.append(
+            {
+                "accuracy": accuracy,
+                "f1": f1,
+            }
+        )
+
+    # Average feature importances
+    feature_importances /= n_splits
+    feature_importance_df = pd.DataFrame(
+        {"Feature": X.columns, "Importance": feature_importances}
+    ).sort_values(by="Importance", ascending=False)
+
+    # Calculate average best parameters across folds
+    avg_best_params = {}
+    for param in param_grid.keys():
+        if param in ["n_estimators"]:  # Integer parameters
+            values = [params[param] for params in all_best_params]
+            avg_best_params[param] = int(np.mean(values))
+        else:  # Float parameters
+            values = [params[param] for params in all_best_params]
+            avg_best_params[param] = np.mean(values)
+
+    return metrics, feature_importance_df, all_y_pred, all_y_test, avg_best_params
+
+
+def train_top_features_classification_model(
+    X, y, top_features_list, model_type="xgboost", n_splits=5
+):
+    """
+    Train classification model using only top features.
+
+    Parameters:
+    -----------
+    X : pandas.DataFrame
+        Full feature matrix
+    y : pandas.Series
+        Target variable (categorical)
+    top_features_list : list
+        List of top feature names to use
+    model_type : str
+        Type of model to train ("xgboost")
+    n_splits : int
+        Number of CV folds
+
+    Returns:
+    --------
+    metrics : list
+        List of metric dictionaries
+    all_predictions : list
+        All predictions from CV
+    all_true_values : list
+        All true values from CV
+    feature_importance_df : pandas.DataFrame, optional
+        Feature importance DataFrame (only for XGBoost models)
+    best_params : dict, optional
+        Best parameters found by GridSearchCV (only for XGBoost models)
+    """
+    # Create new feature matrix with only top features
+    X_top = X[top_features_list].copy()
+
+    # Cross-validated model with top features only
+    kf = KFold(n_splits=n_splits, shuffle=True, random_state=42)
+    all_y_test_top = []
+    all_y_pred_top = []
+    metrics_top = []
+
+    # For feature importance tracking (XGBoost only)
+    if model_type == "xgboost":
+        feature_importances = np.zeros(len(top_features_list))
+        all_best_params = []
+
+    for fold, (train_idx, test_idx) in enumerate(kf.split(X_top)):
+        print(f"\nFold {fold + 1}/{n_splits} (Top Features Classification Model)")
+        X_train_top, X_test_top = X_top.iloc[train_idx], X_top.iloc[test_idx]
+        y_train_top, y_test_top = y.iloc[train_idx], y.iloc[test_idx]
+
+        if model_type == "xgboost":
+            # Hyperparameter tuning for this fold (simplified grid for faster training)
+            base_model_top = XGBClassifier(
+                objective="multi:softprob", random_state=42, eval_metric="mlogloss"
+            )
+
+            # Simplified parameter grid for faster training
+            param_grid_top = {
+                "n_estimators": [100, 200],
+                "max_depth": [3, 5],
+                "learning_rate": [0.1, 0.2],
+            }
+
+            X_train_final, X_test_final = X_train_top, X_test_top
+
+        grid_search_top = GridSearchCV(
+            base_model_top,
+            param_grid_top,
+            cv=3,
+            scoring="f1_macro",
+            n_jobs=-1,
+            verbose=0,
+        )
+
+        grid_search_top.fit(X_train_final, y_train_top)
+        best_model_top = grid_search_top.best_estimator_
+
+        print(f"Best parameters: {grid_search_top.best_params_}")
+        # Store best parameters for this fold
+        all_best_params.append(grid_search_top.best_params_)
+        print(f"Best CV score: {grid_search_top.best_score_:.3f}")
+
+        y_pred_top = best_model_top.predict(X_test_final)
+
+        # Collect all predictions and true values
+        all_y_test_top.extend(y_test_top)
+        all_y_pred_top.extend(y_pred_top)
+
+        # Accumulate feature importances for XGBoost
+        if model_type == "xgboost":
+            feature_importances += best_model_top.feature_importances_
+
+        # Collect metrics
+        accuracy_top = accuracy_score(y_test_top, y_pred_top)
+        f1_top = f1_score(y_test_top, y_pred_top, average="macro")
+
+        print(f"Fold {fold + 1} Accuracy: {accuracy_top:.3f}, F1: {f1_top:.3f}")
+
+        metrics_top.append(
+            {
+                "accuracy": accuracy_top,
+                "f1": f1_top,
+            }
+        )
+
+    # Create feature importance DataFrame for XGBoost models
+    if model_type == "xgboost":
+        feature_importances /= n_splits
+        feature_importance_df = pd.DataFrame(
+            {"Feature": top_features_list, "Importance": feature_importances}
+        ).sort_values(by="Importance", ascending=False)
+
+        # Calculate average best parameters across folds
+        avg_best_params = {}
+        for param in param_grid_top.keys():
+            if param in ["n_estimators"]:  # Integer parameters
+                values = [params[param] for params in all_best_params]
+                avg_best_params[param] = int(np.mean(values))
+            else:  # Float parameters
+                values = [params[param] for params in all_best_params]
+                avg_best_params[param] = np.mean(values)
+
+        return (
+            metrics_top,
+            all_y_pred_top,
+            all_y_test_top,
+            feature_importance_df,
+            avg_best_params,
+        )
+    else:
+        return metrics_top, all_y_pred_top, all_y_test_top, None, None
+
+
+def print_classification_performance(metrics, model_name="Model"):
+    """
+    Print classification model performance metrics.
+
+    Parameters:
+    -----------
+    metrics : list
+        List of metric dictionaries from cross-validation
+    model_name : str
+        Name of the model for display
+    """
+    avg_accuracy = np.mean([m["accuracy"] for m in metrics])
+    avg_f1 = np.mean([m["f1"] for m in metrics])
+
+    print(f"\n{model_name} PERFORMANCE")
+    print("=" * 60)
+    print(f"Cross-Validated Model Performance ({len(metrics)} folds):")
+    print(f"  Accuracy: {avg_accuracy:.3f}")
+    print(f"  F1 Score (macro): {avg_f1:.3f}")
+
+    return avg_accuracy, avg_f1

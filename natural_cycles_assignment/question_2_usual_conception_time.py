@@ -46,7 +46,7 @@ def calculate_usual_conception_time(df: pd.DataFrame):
     print(f"Max conception time: {max_cycles_to_pregnancy} cycles")
 
     # Create visualizations
-    plt.figure(figsize=(15, 5))
+    plt.figure(figsize=(10, 4))
 
     plt.subplot(1, 3, 1)
     sns.histplot(
