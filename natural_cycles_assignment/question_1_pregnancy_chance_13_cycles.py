@@ -36,37 +36,61 @@ def calculate_pregnancy_chance_within_13_cycles(df: pd.DataFrame):
         all_participants_rate_within_13 = pregnant_within_13 / total_participants
         pregnant_participants_rate_within_13 = pregnant_within_13 / total_pregnant
         print(
-            f"Of all participants\t\t{all_participants_rate_within_13*100:.1f}%\t({pregnant_within_13} pregnancies / {total_participants} participants) got pregnant <= 13 cycles"
+            f"Of all participants\t\t{all_participants_rate_within_13*100:.1f}%\t({pregnant_within_13} pregnancies / {total_participants} participants) got pregnant within 13 cycles"
         )
         print(
-            f"Of all pregnant participants\t{pregnant_participants_rate_within_13*100:.1f}%\t({total_pregnant} pregnancies / {total_pregnant} participants) did this <= 13 cycles)"
+            f"Of all pregnant participants\t{pregnant_participants_rate_within_13*100:.1f}%\t({total_pregnant} pregnancies / {total_pregnant} participants) did this within 13 cycles)"
         )
     else:
         print("No pregnant participants found in the dataset!")
 
-    # Create visualizations
-    plt.figure(figsize=(7, 4))
-
-    # Plot pregnancy rate vs cycles trying
-    plt.plot(cycles_range, pregnancy_rates, "o-", linewidth=2, markersize=6)
-    plt.axhline(
-        all_participants_rate_within_13,
+    # PLOTTING
+    plt.figure(figsize=(10, 5))
+    # Create histogram of cycles trying
+    plt.subplot(1, 2, 1)
+    sns.histplot(
+        df, x="n_cycles_trying", alpha=0.7, discrete=True, kde=True, color="lightgreen"
+    )
+    plt.axvline(
+        x=13,
         color="red",
         linestyle="--",
-        label=f"Overall rate within 13 cycles: {all_participants_rate_within_13:.1f}%",
+        label=f"13 cycles ({all_participants_rate_within_13*100:.1f}% of participants)",
     )
-    plt.axvline(13, color="green", linestyle="--", label="13 cycles threshold")
-    plt.grid(True, alpha=0.3)
-    plt.title("Pregnancy Rate vs Number of Cycles Trying")
+    plt.title("All Participants: Cycles Needed to Conceive", fontsize=12, pad=15)
+    plt.xlabel("Number of Cycles Trying")
+    plt.ylabel("Count")
+    plt.legend(loc="upper right", fontsize=9)
+
+    # Cumulative histogram in percentage
+    # BUG: the cumulative histogram is not correct, it should not total to 100%, because not all participants got pregnant!
+    plt.subplot(1, 2, 2)
+    sns.histplot(
+        df[df["pregnant"] == 1],
+        x="n_cycles_trying",
+        alpha=0.7,
+        discrete=True,
+        cumulative=True,
+        stat="percent",
+        thresh=90,
+    )
+    plt.axvline(x=13, color="red", linestyle="--", label="13 cycles")
+    plt.axhline(
+        y=pregnant_participants_rate_within_13 * 100,
+        color="black",
+        linestyle="--",
+        label=f"{pregnant_participants_rate_within_13*100:.1f}%",
+    )
+    plt.title("Pregnant Participants: Cumulative Pregnancy Rate", fontsize=12, pad=15)
     plt.xlabel("Number of Cycles Trying")
     plt.ylabel("Pregnancy Rate [%]")
-    plt.legend()
+    plt.legend(loc="lower right", fontsize=9)
 
     # Save figure
     plt.tight_layout()
     plt.savefig(
         "reports/figures/q1_pregnancy_chance_13_cycles.png",
-        dpi=300,
+        dpi=200,
         bbox_inches="tight",
     )
     plt.show(block=False)

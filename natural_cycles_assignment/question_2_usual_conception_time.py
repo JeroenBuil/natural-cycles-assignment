@@ -100,17 +100,15 @@ def calculate_usual_conception_time(df: pd.DataFrame):
     plt.subplot(1, 3, 3)
 
     sns.violinplot(
-        df_pregnant,
-        y="n_cycles_trying",
-        color="lightblue",
+        df_pregnant, x="n_cycles_trying", color="lightblue", linewidth=1, linecolor="k"
     )
     plt.title("Violin Plot of conception time")
-    plt.ylabel("Conception time [cycles]")
+    plt.xlabel("Conception time [cycles]")
 
     # Save figure
     plt.tight_layout()
     plt.savefig(
-        "reports/figures/q2_usual_conception_time.png", dpi=300, bbox_inches="tight"
+        "reports/figures/q2_usual_conception_time.png", dpi=200, bbox_inches="tight"
     )
     plt.show(block=False)
 

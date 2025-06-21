@@ -89,31 +89,62 @@ def question_4_ML_classification_approach_factors_impacting_conception_time(df):
         print(f"  {class_names[class_idx]}: {count} samples ({percentage:.1f}%)")
 
     # Plot class distribution before and after SMOTE
-    plt.figure(figsize=(4, 3))
-    plt.subplot(1, 2, 1)
-    plt.bar(
-        ["Fast", "Medium", "Slow"],
-        [sum(y == 0), sum(y == 1), sum(y == 2)],
-        color=["green", "orange", "red"],
-        alpha=0.7,
-    )
-    plt.title("Class Distribution (Before SMOTE)")
-    plt.ylabel("Count")
+    plt.figure(figsize=(8, 4))
 
-    plt.subplot(1, 2, 2)
-    plt.bar(
-        ["Fast", "Medium", "Slow"],
-        [sum(y_balanced == 0), sum(y_balanced == 1), sum(y_balanced == 2)],
-        color=["green", "orange", "red"],
-        alpha=0.7,
-    )
-    plt.title("Class Distribution (After SMOTE)")
-    plt.ylabel("Count")
+    # Prepare data for seaborn barplot with hue
+    plot_data = []
+    class_names_short = ["Fast (0-3 cycles)", "Medium (4-6 cycles)", "Slow (7+ cycles)"]
 
-    plt.tight_layout()
+    # Add before SMOTE data
+    for i, count in enumerate([sum(y == 0), sum(y == 1), sum(y == 2)]):
+        plot_data.append(
+            {"Class": class_names_short[i], "Count": count, "Dataset": "Before SMOTE"}
+        )
+
+    # Add after SMOTE data
+    for i, count in enumerate(
+        [sum(y_balanced == 0), sum(y_balanced == 1), sum(y_balanced == 2)]
+    ):
+        plot_data.append(
+            {"Class": class_names_short[i], "Count": count, "Dataset": "After SMOTE"}
+        )
+
+    plot_df = pd.DataFrame(plot_data)
+
+    # Create seaborn barplot with hue
+    sns.barplot(
+        data=plot_df, x="Class", y="Count", hue="Dataset", palette="viridis", alpha=0.8
+    )
+
+    plt.title("Class Distribution Before and After SMOTE", fontsize=14, pad=20)
+    plt.xlabel("Conception Speed Class", fontsize=12)
+    plt.ylabel("Number of Samples", fontsize=12)
+    plt.xticks(fontsize=11)
+    plt.yticks(fontsize=11)
+    plt.legend(
+        title="Dataset",
+        fontsize=10,
+        title_fontsize=11,
+        bbox_to_anchor=(1.05, 1),
+        loc="upper left",
+    )
+
+    # Add value labels on bars
+    for i, p in enumerate(plt.gca().patches):
+        plt.gca().annotate(
+            f"{int(p.get_height())}",
+            (p.get_x() + p.get_width() / 2.0, p.get_height()),
+            ha="center",
+            va="bottom",
+            fontsize=9,
+            xytext=(0, 3),
+            textcoords="offset points",
+        )
+
+    plt.tight_layout(pad=2.0)
     plt.savefig(
         "reports/figures/q4_ML_classification_class_distribution_before_after_smote.png",
-        dpi=300,
+        dpi=200,
         bbox_inches="tight",
     )
     plt.show(block=False)

@@ -12,6 +12,14 @@ def setup_plotting_style():
     """Set up consistent plotting style for the project."""
     plt.style.use("seaborn-v0_8")
     sns.set_palette("viridis")
+    plt.rcParams["figure.figsize"] = (8, 6)
+    plt.rcParams["font.size"] = 10
+    plt.rcParams["axes.titlesize"] = 12
+    plt.rcParams["axes.labelsize"] = 10
+    plt.rcParams["xtick.labelsize"] = 9
+    plt.rcParams["ytick.labelsize"] = 9
+    plt.rcParams["legend.fontsize"] = 9
+    plt.rcParams["figure.titlesize"] = 14
 
 
 def create_factor_plot(df, group_column, title, subplot_pos, color, xlabel):
@@ -41,11 +49,15 @@ def create_factor_plot(df, group_column, title, subplot_pos, color, xlabel):
         x_pos, means.values, color=color, alpha=0.7, yerr=std_errors.values, capsize=5
     )
 
-    plt.title(title, fontsize=10, pad=10)
-    plt.xlabel(xlabel, fontsize=9)
+    plt.title(title, fontsize=10, pad=5)
     plt.ylabel("Mean Cycles", fontsize=9)
-    plt.xticks(x_pos, means.index, rotation=45, fontsize=8)
+    plt.xticks(x_pos, means.index, rotation=45, fontsize=8, ha="right")
     plt.yticks(fontsize=8)
+
+    # Adjust subplot parameters to reduce whitespace
+    plt.subplots_adjust(
+        left=0.08, right=0.95, top=0.92, bottom=0.15, wspace=0.3, hspace=0.4
+    )
 
 
 def create_factors_overview_plot(
@@ -70,7 +82,7 @@ def create_factors_overview_plot(
     plt.tight_layout()
 
     if save_path:
-        plt.savefig(save_path, dpi=300, bbox_inches="tight")
+        plt.savefig(save_path, dpi=200, bbox_inches="tight")
 
     plt.show(block=False)
 
@@ -155,7 +167,7 @@ def plot_predicted_vs_actual(
     plt.tight_layout()
 
     if save_path:
-        plt.savefig(save_path, dpi=300, bbox_inches="tight")
+        plt.savefig(save_path, dpi=200, bbox_inches="tight")
 
     plt.show(block=False)
 
@@ -187,23 +199,24 @@ def plot_feature_importance(
         print(f"\n{title} (top {top_n}):")
         print(feature_importance_df.head(top_n))
 
-    plt.figure(figsize=(6, 4))
+    plt.figure(figsize=(8, 5))
     top_features = feature_importance_df.head(top_n)
     sns.barplot(
         data=top_features,
         y="Feature",
         x="Importance",
         orient="h",
+        palette="viridis",
     )
-    plt.title(title, fontsize=11)
-    plt.xlabel("Importance Score", fontsize=9)
-    plt.ylabel("Feature", fontsize=9)
-    plt.xticks(fontsize=8)
-    plt.yticks(fontsize=8)
-    plt.tight_layout()
+    plt.title(title, fontsize=12, pad=15)
+    plt.xlabel("Importance Score", fontsize=10)
+    plt.ylabel("Feature", fontsize=10)
+    plt.xticks(fontsize=9)
+    plt.yticks(fontsize=9)
+    plt.tight_layout(pad=2.0)
 
     if save_path:
-        plt.savefig(save_path, dpi=300, bbox_inches="tight")
+        plt.savefig(save_path, dpi=200, bbox_inches="tight")
 
     plt.show(block=False)
 
@@ -266,7 +279,7 @@ def plot_model_comparison(metrics_dict, title="Model Comparison", save_path=None
     plt.tight_layout()
 
     if save_path:
-        plt.savefig(save_path, dpi=300, bbox_inches="tight")
+        plt.savefig(save_path, dpi=200, bbox_inches="tight")
 
     plt.show(block=False)
 
@@ -298,7 +311,7 @@ def plot_correlation_matrix(df, title="Correlation Matrix", save_path=None):
     plt.tight_layout()
 
     if save_path:
-        plt.savefig(save_path, dpi=300, bbox_inches="tight")
+        plt.savefig(save_path, dpi=200, bbox_inches="tight")
 
     plt.show()
 
@@ -326,7 +339,7 @@ def plot_distribution(data, title="Distribution", save_path=None, bins=30):
     plt.tight_layout()
 
     if save_path:
-        plt.savefig(save_path, dpi=300, bbox_inches="tight")
+        plt.savefig(save_path, dpi=200, bbox_inches="tight")
 
     plt.show()
 
@@ -378,7 +391,10 @@ def plot_classification_heatmap(
     # Calculate percentages for better visualization
     cm_percent = cm.astype("float") / cm.sum(axis=1)[:, np.newaxis] * 100
 
-    plt.figure(figsize=(6, 5))
+    plt.figure(figsize=(8, 6))
+
+    # Add main title for the entire figure
+    plt.suptitle(title, fontsize=14, y=0.98)
 
     # Create subplot for confusion matrix
     plt.subplot(2, 2, 1)
@@ -386,16 +402,17 @@ def plot_classification_heatmap(
         cm,
         annot=True,
         fmt="d",
-        cmap="Blues",
+        cmap="viridis",
         xticklabels=class_names if class_names else range(len(cm)),
         yticklabels=class_names if class_names else range(len(cm)),
         annot_kws={"size": 8},
+        square=True,
     )
-    plt.title(f"{title}\nConfusion Matrix (Counts)", fontsize=10)
-    plt.xlabel("Predicted", fontsize=9)
-    plt.ylabel("Actual", fontsize=9)
-    plt.xticks(fontsize=8)
-    plt.yticks(fontsize=8)
+    plt.title("Confusion Matrix (Counts)", fontsize=11, pad=15)
+    plt.xlabel("Predicted", fontsize=10)
+    plt.ylabel("Actual", fontsize=10)
+    plt.xticks(fontsize=9, rotation=45, ha="right")
+    plt.yticks(fontsize=9)
 
     # Create subplot for percentage confusion matrix
     plt.subplot(2, 2, 2)
@@ -403,16 +420,17 @@ def plot_classification_heatmap(
         cm_percent,
         annot=True,
         fmt=".1f",
-        cmap="Blues",
+        cmap="viridis",
         xticklabels=class_names if class_names else range(len(cm)),
         yticklabels=class_names if class_names else range(len(cm)),
         annot_kws={"size": 8},
+        square=True,
     )
-    plt.title("Confusion Matrix (%)", fontsize=10)
-    plt.xlabel("Predicted", fontsize=9)
-    plt.ylabel("Actual", fontsize=9)
-    plt.xticks(fontsize=8)
-    plt.yticks(fontsize=8)
+    plt.title("Confusion Matrix (%)", fontsize=11, pad=15)
+    plt.xlabel("Predicted", fontsize=10)
+    plt.ylabel("Actual", fontsize=10)
+    plt.xticks(fontsize=9, rotation=45, ha="right")
+    plt.yticks(fontsize=9)
 
     # Create subplot for ROC curves (AUC)
     plt.subplot(2, 2, 3)
@@ -432,8 +450,8 @@ def plot_classification_heatmap(
         fpr[i], tpr[i], _ = roc_curve(y_true_bin[:, i], y_pred_bin[:, i])
         roc_auc[i] = auc(fpr[i], tpr[i])
 
-    # Plot ROC curves
-    colors = ["blue", "red", "green"]
+    # Plot ROC curves with viridis colors
+    colors = plt.cm.viridis([0.2, 0.5, 0.8])
     for i, color in enumerate(colors):
         if i < len(fpr):
             plt.plot(
@@ -447,12 +465,12 @@ def plot_classification_heatmap(
     plt.plot([0, 1], [0, 1], "k--", lw=2)
     plt.xlim([0.0, 1.0])
     plt.ylim([0.0, 1.05])
-    plt.xlabel("False Positive Rate", fontsize=9)
-    plt.ylabel("True Positive Rate", fontsize=9)
-    plt.title("ROC Curves (AUC)", fontsize=10)
-    plt.legend(loc="lower right", fontsize=7)
-    plt.xticks(fontsize=8)
-    plt.yticks(fontsize=8)
+    plt.xlabel("False Positive Rate", fontsize=10)
+    plt.ylabel("True Positive Rate", fontsize=10)
+    plt.title("ROC Curves (AUC)", fontsize=11, pad=15)
+    plt.legend(loc="lower right", fontsize=8)
+    plt.xticks(fontsize=9)
+    plt.yticks(fontsize=9)
 
     # Create subplot for model parameters and performance metrics
     plt.subplot(2, 2, 4)
@@ -480,11 +498,11 @@ def plot_classification_heatmap(
             0.5,
             info_text.rstrip(),
             transform=plt.gca().transAxes,
-            fontsize=8,
+            fontsize=9,
             verticalalignment="center",
             bbox=dict(boxstyle="round", facecolor="lightblue", alpha=0.8),
         )
-        plt.title("Model Configuration & Performance", fontsize=10)
+        plt.title("Model Configuration & Performance", fontsize=11, pad=15)
     else:
         plt.text(
             0.5,
@@ -493,15 +511,15 @@ def plot_classification_heatmap(
             transform=plt.gca().transAxes,
             ha="center",
             va="center",
-            fontsize=9,
+            fontsize=10,
         )
-        plt.title("Model Configuration", fontsize=10)
+        plt.title("Model Configuration", fontsize=11, pad=15)
 
     plt.axis("off")
 
-    plt.tight_layout()
+    plt.tight_layout(pad=1.0, h_pad=0.5, w_pad=0.5)
 
     if save_path:
-        plt.savefig(save_path, dpi=300, bbox_inches="tight")
+        plt.savefig(save_path, dpi=200, bbox_inches="tight")
 
     plt.show(block=False)

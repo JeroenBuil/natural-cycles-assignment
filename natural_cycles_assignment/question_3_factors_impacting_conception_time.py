@@ -214,7 +214,7 @@ def question_3_factors_impacting_conception_time(df):
             "labels": ["18-25", "26-30", "31-35", "36-50"],
             "test_type": "anova",
             "plot_config": {
-                "title": "Mean Cycles to Pregnancy by Age Group",
+                "title": "Age Group",
                 "color": "skyblue",
                 "xlabel": "Age Group",
             },
@@ -231,7 +231,7 @@ def question_3_factors_impacting_conception_time(df):
             ],
             "test_type": "anova",
             "plot_config": {
-                "title": "Mean Cycles to Pregnancy by BMI Group",
+                "title": "BMI Group",
                 "color": "lightcoral",
                 "xlabel": "BMI Group",
             },
@@ -243,7 +243,7 @@ def question_3_factors_impacting_conception_time(df):
             "labels": ["No, never", "Yes, once", "Yes, twice", "Yes 3 times or more"],
             "test_type": "anova",
             "plot_config": {
-                "title": "Mean Cycles to Pregnancy by Previous Pregnancy",
+                "title": "Previous Pregnancy",
                 "color": "lightgreen",
                 "xlabel": "Been Pregnant Before",
             },
@@ -255,7 +255,7 @@ def question_3_factors_impacting_conception_time(df):
             "labels": None,
             "test_type": "ttest",
             "plot_config": {
-                "title": "Mean Cycles to Pregnancy by Cycle Regularity",
+                "title": "Cycle Regularity",
                 "color": "gold",
                 "xlabel": "Regular Cycle",
             },
@@ -267,7 +267,7 @@ def question_3_factors_impacting_conception_time(df):
             "labels": ["Low (<0.5)", "Medium (0.5-0.8)", "High (>0.8)"],
             "test_type": "anova",
             "plot_config": {
-                "title": "Mean Cycles to Pregnancy by Dedication",
+                "title": "Dedication Level",
                 "color": "plum",
                 "xlabel": "Dedication Level",
             },
@@ -284,7 +284,7 @@ def question_3_factors_impacting_conception_time(df):
             ],
             "test_type": "anova",
             "plot_config": {
-                "title": "Mean Cycles to Pregnancy by Intercourse Frequency",
+                "title": "Intercourse Frequency",
                 "color": "orange",
                 "xlabel": "Intercourse Frequency",
             },
@@ -302,7 +302,7 @@ def question_3_factors_impacting_conception_time(df):
             ],
             "test_type": "anova",
             "plot_config": {
-                "title": "Mean Cycles to Pregnancy by Sleep Pattern",
+                "title": "Sleep Pattern",
                 "color": "teal",
                 "xlabel": "Sleep Pattern",
             },
@@ -320,7 +320,7 @@ def question_3_factors_impacting_conception_time(df):
             ],
             "test_type": "anova",
             "plot_config": {
-                "title": "Mean Cycles to Pregnancy by Education",
+                "title": "Education",
                 "color": "purple",
                 "xlabel": "Education",
             },
@@ -351,7 +351,7 @@ def question_3_factors_impacting_conception_time(df):
             }
 
     # Create visualizations
-    plt.figure(figsize=(11, 7))
+    plt.figure(figsize=(12, 6))
 
     for i, (config, group_col) in enumerate(zip(factor_configs, group_columns)):
         create_factor_plot(
@@ -363,8 +363,7 @@ def question_3_factors_impacting_conception_time(df):
             config["plot_config"]["xlabel"],
         )
 
-    plt.tight_layout(pad=3.0)
-    plt.savefig("reports/figures/q3_factors_impact.png", dpi=300, bbox_inches="tight")
+    plt.savefig("reports/figures/q3_factors_impact.png", dpi=200, bbox_inches="tight")
     plt.show(block=False)
 
     # Correlation analysis

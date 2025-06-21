@@ -1,28 +1,28 @@
 # Core data science libraries
-numpy
-pandas
-scikit-learn
-scipy
+numpy==2.3.0
+pandas==2.3.0
+scikit-learn==1.6.1
+scipy==1.15.3
 
 # Machine learning
-xgboost
-imbalanced-learn
+xgboost==3.0.2
+imbalanced-learn==0.13.0
 
 # Visualization
-matplotlib
-seaborn
+matplotlib==3.10.3
+seaborn==0.13.2
 
 # Development and utilities
-ipython
-jupyterlab
-loguru
-mkdocs
-notebook
-pip
-python-dotenv
-ruff
-tqdm
-typer
+ipython==9.3.0
+ipykernel==6.29.5
+jupyterlab==4.4.3
+loguru==0.7.3
+mkdocs==1.6.1
+notebook==7.4.3
+python-dotenv==1.1.0
+ruff==0.11.13
+tqdm==4.67.1
+typer==0.16.0
 
 # Local package
 -e .
